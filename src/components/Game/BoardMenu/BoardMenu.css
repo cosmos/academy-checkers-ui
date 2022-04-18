@@ -1,0 +1,19 @@
+
+.boardMnuLink {
+    color: white;
+    text-decoration: none;
+}
+.boardMenuBtn {
+    margin: 2px;
+}
+
+#boardMenu {
+    display: table;
+    height: 35px;
+    margin: auto;
+    width: 576px;
+}
+#gameIsSavedIcon {
+    position: relative;
+    top: 15px;
+}
