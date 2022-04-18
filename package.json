@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/cosmos/academy-checkers-ui/issues"
   },
-  "homepage": "https://github.com/cosmos/academy-checkers-ui#readme"
+  "homepage": "https://github.com/cosmos/academy-checkers-ui#readme",
+  "dependencies": {
+    "protobufjs": "6.10.2"
+  }
 }
