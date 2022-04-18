@@ -2,6 +2,7 @@ import Lockr from "lockr"
 import React, { Component, CSSProperties } from "react"
 import { Link } from "react-router-dom"
 import { Alert, Button, Col, Form, Modal, ModalBody, ModalFooter, ModalHeader, Row } from "reactstrap"
+
 import { IGameInfo } from "../../../sharedTypes"
 import "./NewGame.css"
 import PlayerAiCheckbox from "./PlayerAiCheckbox"
@@ -11,8 +12,11 @@ interface INewGameModalProps {
     close: () => void
     shown: boolean
 }
+interface INewGameModalState {
+    showAlert: boolean
+}
 
-export default class NewGameModal extends Component<INewGameModalProps, { showAlert: boolean }> {
+export default class NewGameModal extends Component<INewGameModalProps, INewGameModalState> {
     private readonly linkStyles: CSSProperties = {
         color: "white",
         display: "block",

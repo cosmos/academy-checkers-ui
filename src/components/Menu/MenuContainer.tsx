@@ -7,14 +7,17 @@ import Menu from "./Menu"
 // declare const localStorageSupport: boolean;
 // declare var gameToLoad: boolean | null;
 
+export interface IMenuContainerProps {
+    location?: any
+}
 interface IMenuContainerState {
     saved: IGameInfo[]
     showAlert: boolean
     showModal: boolean
 }
 
-export default class MenuContainer extends Component<{ location?: any }, IMenuContainerState> {
-    constructor(props: {}) {
+export default class MenuContainer extends Component<IMenuContainerProps, IMenuContainerState> {
+    constructor(props: IMenuContainerProps) {
         super(props)
         this.state = {
             saved: [],
