@@ -19,5 +19,10 @@
   "dependencies": {
     "@cosmjs/stargate": "0.28.2",
     "protobufjs": "6.10.2"
+  },
+  "devDependencies": {
+    "@types/node": "17.0.24",
+    "dotenv": "16.0.0",
+    "ts-node": "10.7.0"
   }
 }
