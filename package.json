@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/cosmos/academy-checkers-ui#readme",
   "dependencies": {
+    "@cosmjs/stargate": "0.28.2",
     "protobufjs": "6.10.2"
   }
 }
