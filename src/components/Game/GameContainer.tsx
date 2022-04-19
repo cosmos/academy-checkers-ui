@@ -222,7 +222,6 @@ export default class GameContainer extends Component<IGameContainerProps, IGameC
         }
 
         const { creator, signingClient } = await this.getSigningStargateClient()
-        console.log("creator", creator)
         try {
             await signingClient.playGuiMove(creator, this.props.index, move)
         } catch (e) {
