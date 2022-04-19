@@ -15,7 +15,7 @@ export interface IGameInfo {
     p1: IPlayerInfo
     p2: IPlayerInfo
     turn: number
-    index?: number
+    index: number
 }
 
 export interface IMoveVector {

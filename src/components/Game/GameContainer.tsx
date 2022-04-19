@@ -276,6 +276,7 @@ export default class GameContainer extends Component<IGameContainerProps, IGameC
                 p1: p1 as IPlayerInfo,
                 p2: p2 as IPlayerInfo,
                 turn: board.current_player,
+                index: 999999,
             }
 
             const savedGames: IGameInfo[] = Lockr.get("saved_games") || []
