@@ -1,13 +1,22 @@
 import Lockr from "lockr"
 import React, { Component } from "react"
+import { OfflineSigner } from "@cosmjs/proto-signing"
+import { GasPrice } from "@cosmjs/stargate"
+import { checkersChainId, getCheckersChainInfo } from "../../types/checkers/chain"
 import {} from "../../types/checkers/extensions-gui"
+import MoveTree, { Player } from "../../util/MoveTree"
+import { CheckersSigningStargateClient } from "../../checkers_signingstargateclient"
 import { CheckersStargateClient } from "../../checkers_stargateclient"
 import { IGameInfo, IPlayerInfo, Position } from "../../sharedTypes"
-import MoveTree, { Player } from "../../util/MoveTree"
 import Board from "./Board/Board"
 import BoardMenu from "./BoardMenu/BoardMenu"
 import ScoreBar from "./BoardMenu/ScoreBar"
 import GameOverModal from "./GameOverModal"
+
+interface CreatorInfo {
+    creator: string
+    signingClient: CheckersSigningStargateClient
+}
 
 interface IGameContainerProps {
     location: any
@@ -27,6 +36,8 @@ interface IGameContainerState {
     }
     [key: string]: any
     client: CheckersStargateClient | undefined
+    creator: string
+    signingClient: CheckersSigningStargateClient | undefined
 }
 
 export default class GameContainer extends Component<IGameContainerProps, IGameContainerState> {
@@ -48,6 +59,8 @@ export default class GameContainer extends Component<IGameContainerProps, IGameC
         },
         selected: {},
         client: undefined,
+        creator: "",
+        signingClient: undefined,
     }
     constructor(props: IGameContainerProps) {
         super(props)
@@ -105,6 +118,30 @@ export default class GameContainer extends Component<IGameContainerProps, IGameC
         if (!this.state.client) this.setState({ client: client })
         return client
     }
+    protected async getSigningStargateClient(): Promise<CreatorInfo> {
+        if (this.state.creator && this.state.signingClient)
+            return {
+                creator: this.state.creator,
+                signingClient: this.state.signingClient,
+            }
+        const { keplr } = window
+        if (!keplr) {
+            alert("You need to install Keplr")
+            throw new Error("You need to install Keplr")
+        }
+        await keplr.experimentalSuggestChain(getCheckersChainInfo())
+        const offlineSigner: OfflineSigner = keplr.getOfflineSigner!(checkersChainId)
+        const creator = (await offlineSigner.getAccounts())[0].address
+        const client: CheckersSigningStargateClient = await CheckersSigningStargateClient.connectWithSigner(
+            this.props.rpcUrl,
+            offlineSigner,
+            {
+                gasPrice: GasPrice.fromString("1stake"),
+            },
+        )
+        this.setState({ creator: creator, signingClient: client })
+        return { creator: creator, signingClient: client }
+    }
     public currentPlayerIsAI(): boolean {
         const player: Player = this.state.board.current_player
         return this.state["p" + player].is_ai
@@ -161,7 +198,7 @@ export default class GameContainer extends Component<IGameContainerProps, IGameC
         selected[`${row},${col}`] = true
         this.setState({ selected })
     }
-    public makeMove(): void {
+    public async makeMove(): Promise<void> {
         if (this.state.locked && !this.currentPlayerIsAI()) {
             return
         }
@@ -171,42 +208,30 @@ export default class GameContainer extends Component<IGameContainerProps, IGameC
         }
 
         const move: Position[] = keys.map((k: string): Position => k.split(",").map(Number) as Position)
-        const board: MoveTree = this.state.board.getResultingTree(move) as MoveTree
-        const player: Player = this.state.board.current_player
-        const selected = Object.create(null)
 
-        if (board !== null) {
-            this.setState({ board, locked: false }, () => {
-                // check for a change in a player's score
-                // and save the game
-                if (player === 1) {
-                    const p1: IPlayerInfo = this.state.p1 as IPlayerInfo
-                    p1.score = this.getScore(player)
-                    this.setState({ p1 }, this.saveGame)
-                } else if (player === 2) {
-                    const p2: IPlayerInfo = this.state.p2 as IPlayerInfo
-                    p2.score = this.getScore(player)
-                    this.setState({ p2 }, this.saveGame)
-                } else {
-                    this.saveGame()
-                }
-                if (board.game_over) {
-                    this.setState({ gameOver: true })
-                } else {
-                    // check if the AI needs to make a move
-                    if (this.currentPlayerIsAI()) {
-                        this.state.board
-                            .getBestMove()
-                            .forEach(([row, col]) => (selected[`${row},${col}`] = true))
-                        this.setState({ selected, locked: true }, () => {
-                            window.setTimeout(this.makeMove.bind(this), 750)
-                        })
-                    }
-                }
-            })
+        const client = await this.getStargateClient()
+        const canPlayOrNot = await client.canPlayGuiMove(
+            this.props.index,
+            this.state.board.current_player,
+            move,
+        )
+        if (!canPlayOrNot.possible) {
+            const error = `Cannot make this move ${canPlayOrNot.reason}`
+            alert(error)
+            throw new Error(error)
         }
-        // console.log(JSON.stringify(selected));
+
+        const { creator, signingClient } = await this.getSigningStargateClient()
+        console.log("creator", creator)
+        try {
+            await signingClient.playGuiMove(creator, this.props.index, move)
+        } catch (e) {
+            console.error(e)
+            alert("Failed to play: " + e)
+        }
+        const selected = Object.create(null)
         this.setState({ selected })
+        return this.loadGame()
     }
     public render() {
         let winner: string = ""
