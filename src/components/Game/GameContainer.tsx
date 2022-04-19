@@ -1,6 +1,7 @@
 import Lockr from "lockr"
-import QueryString from "query-string"
 import React, { Component } from "react"
+import {} from "../../types/checkers/extensions-gui"
+import { CheckersStargateClient } from "../../checkers_stargateclient"
 import { IGameInfo, IPlayerInfo, Position } from "../../sharedTypes"
 import MoveTree, { Player } from "../../util/MoveTree"
 import Board from "./Board/Board"
@@ -11,6 +12,7 @@ import GameOverModal from "./GameOverModal"
 interface IGameContainerProps {
     location: any
     index: string
+    rpcUrl: string
 }
 interface IGameContainerState {
     board: MoveTree
@@ -24,6 +26,7 @@ interface IGameContainerState {
         [key: string]: boolean
     }
     [key: string]: any
+    client: CheckersStargateClient | undefined
 }
 
 export default class GameContainer extends Component<IGameContainerProps, IGameContainerState> {
@@ -44,6 +47,7 @@ export default class GameContainer extends Component<IGameContainerProps, IGameC
             score: 0,
         },
         selected: {},
+        client: undefined,
     }
     constructor(props: IGameContainerProps) {
         super(props)
@@ -52,33 +56,25 @@ export default class GameContainer extends Component<IGameContainerProps, IGameC
         this.updateName = this.updateName.bind(this)
     }
 
-    public componentDidMount(): void {
+    public async componentDidMount(): Promise<void> {
         // Allow a player to make a move by double-clicking the screen.
         // This is mainly for touchscreen users.
         window.addEventListener("dblclick", this.makeMove)
+        await this.loadGame()
+    }
 
-        const savedGames: IGameInfo[] = Lockr.get("saved_games") || []
-        const querys: any = QueryString.parse(this.props.location.search)
-
-        if (querys.newGame === "true") {
-            Lockr.set("saved_games", savedGames.slice(1))
-        }
-
-        let index: number = parseInt(this.props.index)
-
-        if (isNaN(index) || index < 0 || index >= savedGames.length) {
-            index = 0
-        }
-
-        if (index === 0 && savedGames.length === 0) {
+    protected async loadGame(): Promise<void> {
+        const game: IGameInfo | undefined = await (
+            await this.getStargateClient()
+        ).getGuiGame(this.props.index)
+        if (!game) {
+            alert("Game does not exist")
             return
         }
-        const game: IGameInfo = savedGames[index]
-
         this.setState({
             board: new MoveTree(game.board, game.turn, 5),
             created: game.created,
-            isSaved: !querys.newGame,
+            isSaved: true,
             last: game.last,
             p1: {
                 is_ai: game.p1.is_ai,
@@ -102,6 +98,12 @@ export default class GameContainer extends Component<IGameContainerProps, IGameC
     }
     public componentWillUnmount() {
         window.removeEventListener("dblclick", this.makeMove)
+    }
+    protected async getStargateClient(): Promise<CheckersStargateClient> {
+        const client: CheckersStargateClient =
+            this.state.client ?? (await CheckersStargateClient.connect(this.props.rpcUrl))
+        if (!this.state.client) this.setState({ client: client })
+        return client
     }
     public currentPlayerIsAI(): boolean {
         const player: Player = this.state.board.current_player
