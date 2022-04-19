@@ -78,6 +78,7 @@ export default class MenuContainer extends Component<IMenuContainerProps, IMenuC
                 modalIsShown={this.state.showModal}
                 openModal={this.openModal}
                 showAlert={this.state.showAlert}
+                rpcUrl={this.props.rpcUrl}
             />
         )
     }
