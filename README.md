@@ -12,3 +12,4 @@ There are a number of branches. The purpose of these branches is to show how the
 * [`signing-stargate`](https://github.com/cosmos/academy-checkers-ui/tree/signing-stargate) [diff](https://github.com/cosmos/academy-checkers-ui/compare/stargate...signing-stargate)
 * [`unwired-gui`](https://github.com/cosmos/academy-checkers-ui/tree/unwired-gui) [diff](https://github.com/cosmos/academy-checkers-ui/compare/signing-stargate...unwired-gui)
 * [`gui`](https://github.com/cosmos/academy-checkers-ui/tree/gui) [diff](https://github.com/cosmos/academy-checkers-ui/compare/unwired-gui...gui)
+* [`server-indexing`](https://github.com/cosmos/academy-checkers-ui/tree/server-indexing) [diff](https://github.com/cosmos/academy-checkers-ui/compare/gui...server-indexing)
