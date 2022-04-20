@@ -9,5 +9,5 @@ There are a number of branches. The purpose of these branches is to show how the
 * [`start`](https://github.com/cosmos/academy-checkers-ui/tree/start)
 * [`generated`](https://github.com/cosmos/academy-checkers-ui/tree/generated) [diff](https://github.com/cosmos/academy-checkers-ui/compare/start...generated)
 * [`stargate`](https://github.com/cosmos/academy-checkers-ui/tree/stargate) [diff](https://github.com/cosmos/academy-checkers-ui/compare/generated...stargate)
-* [`signing_stargate`](https://github.com/cosmos/academy-checkers-ui/tree/signing_stargate) [diff](https://github.com/cosmos/academy-checkers-ui/compare/stargate...signing_stargate)
-* [`unwired-gui`](https://github.com/cosmos/academy-checkers-ui/tree/unwired-gui) [diff](https://github.com/cosmos/academy-checkers-ui/compare/signing_stargate...unwired-gui)
+* [`signing-stargate`](https://github.com/cosmos/academy-checkers-ui/tree/signing-stargate) [diff](https://github.com/cosmos/academy-checkers-ui/compare/stargate...signing-stargate)
+* [`unwired-gui`](https://github.com/cosmos/academy-checkers-ui/tree/unwired-gui) [diff](https://github.com/cosmos/academy-checkers-ui/compare/signing-stargate...unwired-gui)
