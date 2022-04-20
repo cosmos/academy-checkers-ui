@@ -1,9 +1,13 @@
+import { sha256 } from "@cosmjs/crypto"
+import { toHex } from "@cosmjs/encoding"
+import { Block, IndexedTx } from "@cosmjs/stargate"
+import { ABCIMessageLog, Attribute, StringEvent } from "cosmjs-types/cosmos/base/abci/v1beta1/abci"
 import { config } from "dotenv"
+import express, { Express, Request, Response } from "express"
 import { writeFile } from "fs/promises"
 import { Server } from "http"
-import express, { Express, Request, Response } from "express"
 import { CheckersStargateClient } from "../checkers_stargateclient"
-import { DbType } from "./types"
+import { DbType, PlayerInfo } from "./types"
 
 config()
 
@@ -59,14 +63,133 @@ export const createIndexer = async () => {
 
     const poll = async () => {
         const currentHeight = await client.getHeight()
-        console.log(
-            new Date(Date.now()).toISOString(),
-            "Current heights:",
-            db.status.block.height,
-            "<=",
-            currentHeight,
-        )
+        if (db.status.block.height <= currentHeight - 100)
+            console.log(`Catching up ${db.status.block.height}..${currentHeight}`)
+        while (db.status.block.height < currentHeight) {
+            const processing = db.status.block.height + 1
+            process.stdout.cursorTo(0)
+            // Get the block
+            const block: Block = await client.getBlock(processing)
+            process.stdout.write(`Handling block: ${processing} with ${block.txs.length} txs`)
+            await handleBlock(block)
+            db.status.block.height = processing
+        }
+        await saveDb()
         timer = setTimeout(poll, pollIntervalMs)
+    }
+
+    const handleBlock = async (block: Block) => {
+        if (0 < block.txs.length) console.log("")
+        let txIndex = 0
+        while (txIndex < block.txs.length) {
+            const txHash: string = toHex(sha256(block.txs[txIndex])).toUpperCase()
+            const indexed: IndexedTx | null = await client.getTx(txHash)
+            if (!indexed) throw new Error(`Could not find indexed tx: ${txHash}`)
+            await handleTx(indexed)
+            txIndex++
+        }
+        // TODO handle EndBlock
+    }
+
+    const handleTx = async (indexed: IndexedTx) => {
+        const rawLog: any = JSON.parse(indexed.rawLog)
+        const events: StringEvent[] = rawLog.flatMap((log: ABCIMessageLog) => log.events)
+        await handleEvents(events)
+    }
+
+    const handleEvents = async (events: StringEvent[]): Promise<void> => {
+        try {
+            const myEvents: StringEvent[] = events
+                .filter((event: StringEvent) => event.type === "message")
+                .filter((event: StringEvent) =>
+                    event.attributes.some(
+                        (attribute: Attribute) =>
+                            attribute.key === "module" && attribute.value === "checkers",
+                    ),
+                )
+            let eventIndex = 0
+            while (eventIndex < myEvents.length) {
+                await handleEvent(myEvents[eventIndex])
+                eventIndex++
+            }
+        } catch (e) {
+            // Skipping if the handling failed. Most likely the transaction failed.
+        }
+    }
+
+    const handleEvent = async (event: StringEvent): Promise<void> => {
+        const isActionOf = (actionValue: string): boolean =>
+            event.attributes.some(
+                (attribute: Attribute) => attribute.key === "action" && attribute.value === actionValue,
+            )
+        if (isActionOf("NewGameCreated")) {
+            await handleEventCreate(event)
+        }
+        if (isActionOf("GameRejected")) {
+            await handleEventReject(event)
+        }
+        if (isActionOf("MovePlayed")) {
+            await handleEventPlay(event)
+        }
+    }
+
+    const handleEventCreate = async (event: StringEvent): Promise<void> => {
+        const newId: string | undefined = getAttributeValueByKey(event.attributes, "Index")
+        if (!newId) throw new Error(`Create event missing Index`)
+        const blackAddress: string | undefined = getAttributeValueByKey(event.attributes, "Black")
+        if (!blackAddress) throw new Error(`Create event missing Black address`)
+        const redAddress: string | undefined = getAttributeValueByKey(event.attributes, "Red")
+        if (!redAddress) throw new Error(`Create event missing Red address`)
+        console.log(`New game: ${newId}, black: ${blackAddress}, red: ${redAddress}`)
+        const blackInfo: PlayerInfo = db.players[blackAddress] ?? {
+            gameIds: [],
+        }
+        const redInfo: PlayerInfo = db.players[redAddress] ?? {
+            gameIds: [],
+        }
+        if (blackInfo.gameIds.indexOf(newId) < 0) blackInfo.gameIds.push(newId)
+        if (redInfo.gameIds.indexOf(newId) < 0) redInfo.gameIds.push(newId)
+        db.players[blackAddress] = blackInfo
+        db.players[redAddress] = redInfo
+        db.games[newId] = {
+            redAddress: redAddress,
+            blackAddress: blackAddress,
+        }
+    }
+
+    const handleEventReject = async (event: StringEvent): Promise<void> => {
+        const rejectedId: string | undefined = getAttributeValueByKey(event.attributes, "IdValue")
+        if (!rejectedId) throw new Error(`Reject event missing rejectedId`)
+        const blackAddress: string | undefined = db.games[rejectedId]?.blackAddress
+        const redAddress: string | undefined = db.games[rejectedId]?.redAddress
+        const blackGames: string[] = db.players[blackAddress]?.gameIds ?? []
+        const redGames: string[] = db.players[redAddress]?.gameIds ?? []
+        console.log(`Reject game: ${rejectedId}, black: ${blackAddress}, red: ${redAddress}`)
+        const indexInBlack: number = blackGames.indexOf(rejectedId)
+        if (0 <= indexInBlack) blackGames.splice(indexInBlack, 1)
+        const indexInRed: number = redGames.indexOf(rejectedId)
+        if (0 <= indexInRed) redGames.splice(indexInRed, 1)
+    }
+
+    const handleEventPlay = async (event: StringEvent): Promise<void> => {
+        const playedId: string | undefined = getAttributeValueByKey(event.attributes, "IdValue")
+        if (!playedId) throw new Error(`Play event missing rejectedId`)
+        const winner: string | undefined = getAttributeValueByKey(event.attributes, "Winner")
+        if (!winner) throw new Error("Play event missing winner")
+        if (winner === "NO_PLAYER") return
+        const blackAddress: string | undefined = db.games[playedId]?.blackAddress
+        const redAddress: string | undefined = db.games[playedId]?.redAddress
+        const blackGames: string[] = db.players[blackAddress]?.gameIds ?? []
+        const redGames: string[] = db.players[redAddress]?.gameIds ?? []
+        console.log(`Win game: ${playedId}, black: ${blackAddress}, red: ${redAddress}, winner: ${winner}`)
+        const indexInBlack: number = blackGames.indexOf(playedId)
+        if (0 <= indexInBlack) blackGames.splice(indexInBlack, 1)
+        const indexInRed: number = redGames.indexOf(playedId)
+        if (0 <= indexInRed) redGames.splice(indexInRed, 1)
+    }
+
+    const getAttributeValueByKey = (attributes: Attribute[], key: string): string | undefined => {
+        return attributes.find((attribute: Attribute) => attribute.key === key)?.value
     }
 
     process.on("SIGINT", () => {
