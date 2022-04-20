@@ -19,7 +19,7 @@ interface IMenuProps {
 
 const Menu = (props: IMenuProps) => {
     const menuItems = props.games.map((game, index) => (
-        <MenuItem deleteGame={props.deleteGame} info={game} index={game.index!} key={"game" + game.index} />
+        <MenuItem deleteGame={props.deleteGame} info={game} index={game.index} key={"game" + game.index} />
     ))
     return (
         <div style={{ minHeight: "150px", padding: "10px" }} id="savedGames">
