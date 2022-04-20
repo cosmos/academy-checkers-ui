@@ -6,8 +6,9 @@ import { config } from "dotenv"
 import express, { Express, Request, Response } from "express"
 import { writeFile } from "fs/promises"
 import { Server } from "http"
+import { StoredGame } from "../types/generated/checkers/stored_game"
 import { IndexerStargateClient } from "./indexer_stargateclient"
-import { DbType, PlayerInfo } from "./types"
+import { DbType, GameInfo, PlayerInfo } from "./types"
 
 config()
 
@@ -45,10 +46,14 @@ export const createIndexer = async () => {
         res.json(db.players[req.params.playerAddress]?.gameIds ?? [])
     })
 
-    app.patch("/games/:gameId", (req: Request, res: Response) => {
-        res.json({
-            result: "Not implemented",
-        })
+    app.patch("/games/:gameId", async (req: Request, res: Response) => {
+        const found = await patchGame(req.params.gameId)
+        if (!found) res.status(404)
+        else {
+            res.json({
+                result: "Thank you",
+            })
+        }
     })
 
     const saveDb = async () => {
@@ -215,6 +220,58 @@ export const createIndexer = async () => {
 
     const getAttributeValueByKey = (attributes: Attribute[], key: string): string | undefined => {
         return attributes.find((attribute: Attribute) => attribute.key === key)?.value
+    }
+
+    const patchGame = async (gameId: string): Promise<boolean> => {
+        const game: StoredGame | undefined = await client.checkersQueryClient?.checkers.getStoredGame(gameId)
+        const cachedGame: GameInfo | undefined = db.games[gameId]
+        if (!game && cachedGame) {
+            const blackGames: string[] = db.players[cachedGame.blackAddress]?.gameIds ?? []
+            const redGames: string[] = db.players[cachedGame.redAddress]?.gameIds ?? []
+            console.log(
+                `Patch game: deleted, ${gameId}, black: ${cachedGame.blackAddress}, red: ${cachedGame.redAddress}`,
+            )
+            const indexInBlack: number = blackGames.indexOf(gameId)
+            if (0 <= indexInBlack) blackGames.splice(indexInBlack, 1)
+            const indexInRed: number = redGames.indexOf(gameId)
+            if (0 <= indexInRed) redGames.splice(indexInRed, 1)
+            return true
+        } else if (!game) {
+            // No information to work from.
+            // If we try to remove it from all players, it is very expensive and we are at risk of a DoS attack.
+            console.log(`Patch game: not found, ${gameId}`)
+            return false
+        } else if (game.winner !== "NO_PLAYER") {
+            const blackGames: string[] = db.players[game.black]?.gameIds ?? []
+            const redGames: string[] = db.players[game.red]?.gameIds ?? []
+            console.log(
+                `Patch game: ended, ${gameId}, black: ${game.black}, red: ${game.red}, winner: ${game.winner}`,
+            )
+            const indexInBlack: number = blackGames.indexOf(gameId)
+            if (0 <= indexInBlack) blackGames.splice(indexInBlack, 1)
+            const indexInRed: number = redGames.indexOf(gameId)
+            if (0 <= indexInRed) redGames.splice(indexInRed, 1)
+            return true
+        } else {
+            const blackInfo: PlayerInfo = db.players[game.black] ?? {
+                gameIds: [],
+            }
+            const redInfo: PlayerInfo = db.players[game.red] ?? {
+                gameIds: [],
+            }
+            console.log(
+                `Patch game: new, ${gameId}, black: ${game.black}, red: ${game.red}, winner: ${game.winner}`,
+            )
+            if (blackInfo.gameIds.indexOf(gameId) < 0) blackInfo.gameIds.push(gameId)
+            if (redInfo.gameIds.indexOf(gameId) < 0) redInfo.gameIds.push(gameId)
+            db.players[game.black] = blackInfo
+            db.players[game.red] = redInfo
+            db.games[gameId] = {
+                redAddress: game.red,
+                blackAddress: game.black,
+            }
+            return true
+        }
     }
 
     process.on("SIGINT", () => {
