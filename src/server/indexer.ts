@@ -6,7 +6,7 @@ import { config } from "dotenv"
 import express, { Express, Request, Response } from "express"
 import { writeFile } from "fs/promises"
 import { Server } from "http"
-import { CheckersStargateClient } from "../checkers_stargateclient"
+import { IndexerStargateClient } from "./indexer_stargateclient"
 import { DbType, PlayerInfo } from "./types"
 
 config()
@@ -17,7 +17,7 @@ export const createIndexer = async () => {
     const db: DbType = require(dbFile)
     const pollIntervalMs = 5_000 // 5 seconds
     let timer: NodeJS.Timer | undefined
-    let client: CheckersStargateClient
+    let client: IndexerStargateClient
 
     const app: Express = express()
     app.get("/", (req: Request, res: Response) => {
@@ -56,7 +56,7 @@ export const createIndexer = async () => {
     }
 
     const init = async () => {
-        client = await CheckersStargateClient.connect(process.env.RPC_URL!)
+        client = await IndexerStargateClient.connect(process.env.RPC_URL!)
         console.log("Connected to chain-id:", await client.getChainId())
         setTimeout(poll, 1)
     }
@@ -88,7 +88,9 @@ export const createIndexer = async () => {
             await handleTx(indexed)
             txIndex++
         }
-        // TODO handle EndBlock
+        const events: StringEvent[] = await client.getEndBlockEvents(block.header.height)
+        if (0 < events.length) console.log("")
+        await handleEvents(events)
     }
 
     const handleTx = async (indexed: IndexedTx) => {
@@ -130,6 +132,9 @@ export const createIndexer = async () => {
         }
         if (isActionOf("MovePlayed")) {
             await handleEventPlay(event)
+        }
+        if (isActionOf("GameForfeited")) {
+            await handleEventForfeit(event)
         }
     }
 
@@ -186,6 +191,26 @@ export const createIndexer = async () => {
         if (0 <= indexInBlack) blackGames.splice(indexInBlack, 1)
         const indexInRed: number = redGames.indexOf(playedId)
         if (0 <= indexInRed) redGames.splice(indexInRed, 1)
+    }
+
+    const handleEventForfeit = async (event: StringEvent): Promise<void> => {
+        const forfeitedId: string | undefined = getAttributeValueByKey(event.attributes, "IdValue")
+        if (!forfeitedId) throw new Error(`Forfeit event missing forfeitedId`)
+        const winner: string | undefined = getAttributeValueByKey(event.attributes, "Winner")
+        const blackAddress: string | undefined = db.games[forfeitedId]?.blackAddress
+        const redAddress: string | undefined = db.games[forfeitedId]?.redAddress
+        const blackGames: string[] = db.players[blackAddress]?.gameIds ?? []
+        const redGames: string[] = db.players[redAddress]?.gameIds ?? []
+        console.log(
+            `Forfeit game: ${forfeitedId}, black: ${blackAddress}, red: ${redAddress}, winner: ${winner}`,
+        )
+        const indexInBlack: number = blackGames.indexOf(forfeitedId)
+        if (0 <= indexInBlack) blackGames.splice(indexInBlack, 1)
+        const indexInRed: number = redGames.indexOf(forfeitedId)
+        if (0 <= indexInRed) redGames.splice(indexInRed, 1)
+        if (winner === "NO_PLAYER") {
+            delete db.games[forfeitedId]
+        }
     }
 
     const getAttributeValueByKey = (attributes: Attribute[], key: string): string | undefined => {
