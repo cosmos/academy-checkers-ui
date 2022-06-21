@@ -4,7 +4,7 @@ import _m0 from "protobufjs/minimal"
 import { NextGame } from "../checkers/next_game"
 import { StoredGame } from "../checkers/stored_game"
 
-export const protobufPackage = "xavierlepretre.checkers.checkers"
+export const protobufPackage = "b9lab.checkers.checkers"
 
 /** GenesisState defines the checkers module's genesis state. */
 export interface GenesisState {
