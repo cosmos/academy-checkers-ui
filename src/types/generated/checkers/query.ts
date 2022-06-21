@@ -5,7 +5,7 @@ import { StoredGame } from "../checkers/stored_game"
 import { PageRequest, PageResponse } from "../cosmos/base/query/v1beta1/pagination"
 import { NextGame } from "../checkers/next_game"
 
-export const protobufPackage = "xavierlepretre.checkers.checkers"
+export const protobufPackage = "b9lab.checkers.checkers"
 
 /** this line is used by starport scaffolding # 3 */
 export interface QueryCanPlayMoveRequest {
@@ -553,25 +553,25 @@ export class QueryClientImpl implements Query {
     }
     CanPlayMove(request: QueryCanPlayMoveRequest): Promise<QueryCanPlayMoveResponse> {
         const data = QueryCanPlayMoveRequest.encode(request).finish()
-        const promise = this.rpc.request("xavierlepretre.checkers.checkers.Query", "CanPlayMove", data)
+        const promise = this.rpc.request("b9lab.checkers.checkers.Query", "CanPlayMove", data)
         return promise.then((data) => QueryCanPlayMoveResponse.decode(new _m0.Reader(data)))
     }
 
     StoredGame(request: QueryGetStoredGameRequest): Promise<QueryGetStoredGameResponse> {
         const data = QueryGetStoredGameRequest.encode(request).finish()
-        const promise = this.rpc.request("xavierlepretre.checkers.checkers.Query", "StoredGame", data)
+        const promise = this.rpc.request("b9lab.checkers.checkers.Query", "StoredGame", data)
         return promise.then((data) => QueryGetStoredGameResponse.decode(new _m0.Reader(data)))
     }
 
     StoredGameAll(request: QueryAllStoredGameRequest): Promise<QueryAllStoredGameResponse> {
         const data = QueryAllStoredGameRequest.encode(request).finish()
-        const promise = this.rpc.request("xavierlepretre.checkers.checkers.Query", "StoredGameAll", data)
+        const promise = this.rpc.request("b9lab.checkers.checkers.Query", "StoredGameAll", data)
         return promise.then((data) => QueryAllStoredGameResponse.decode(new _m0.Reader(data)))
     }
 
     NextGame(request: QueryGetNextGameRequest): Promise<QueryGetNextGameResponse> {
         const data = QueryGetNextGameRequest.encode(request).finish()
-        const promise = this.rpc.request("xavierlepretre.checkers.checkers.Query", "NextGame", data)
+        const promise = this.rpc.request("b9lab.checkers.checkers.Query", "NextGame", data)
         return promise.then((data) => QueryGetNextGameResponse.decode(new _m0.Reader(data)))
     }
 }
