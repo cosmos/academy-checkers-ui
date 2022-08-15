@@ -13,6 +13,7 @@ To make it easier to link to the content at the different stages of the project'
 The script `push-branches.sh` is used to extract these commits and force push them to the appropriate branch in the repository. After having made changes, you should run this script, and also manually force push to `main`.
 
 * [`start`](https://github.com/cosmos/academy-checkers-ui/tree/start)
+* [`generated`](https://github.com/cosmos/academy-checkers-ui/tree/generated) [diff](https://github.com/cosmos/academy-checkers-ui/compare/start...generated)
 
 ## V1 branches progression
 
