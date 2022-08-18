@@ -8,6 +8,7 @@ There are a number of branches. The purpose of these branches is to show how the
 
 * [`start`](https://github.com/cosmos/academy-checkers-ui/tree/start)
 * [`generated`](https://github.com/cosmos/academy-checkers-ui/tree/generated) [diff](https://github.com/cosmos/academy-checkers-ui/compare/start...generated)
+* [`stargate`](https://github.com/cosmos/academy-checkers-ui/tree/stargate) [diff](https://github.com/cosmos/academy-checkers-ui/compare/generated...stargate)
 
 ## V1 branches progression
 
