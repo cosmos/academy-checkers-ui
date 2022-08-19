@@ -1,0 +1,74 @@
+[
+    {
+        "title": "Rules",
+        "children": [
+            {
+                "title": "Making a Move",
+                "contents": [
+                    "Pieces move diagonally along the black squares, no piece may ever be on a white square.",
+                    "All pieces are only allowed to move one square at a time, unless jumping",
+                    "Normal pieces are only allowed to move away from the side of the board they start on (i.e. black pieces down, red pieces up).",
+                    "Kings, however, may move in any direction.",
+                    "To selcet your move, click on the piece you wish to move, followed by the square you want to move it to.",
+                    "When you click one of your pieces, the background will turn light yellow to show it has been selected as the piece you wish to move. When you click on an empty square, the background will turn a light grey to show that it is the square you have seclected to move the piece to.",
+                    "If you accidentally click on a wrong piece or empty square, simply click on the a different piece or the same piece again to start selecting your move again.",
+                    "Once you have properly selected your move, click the \"Make Move\" button, press <kbd>Enter</kbd>, or double-click on the square you want your piece to land on."
+                ]
+            },
+            {
+                "title": "Jumping a Piece",
+                "contents": [
+                    "The opponent's pieces are captured by being \"jumped\".",
+                    "An opponent's piece is able to be jumped when one of your pieces is diagonally agacent to it and there is an empty square directly behind that peice, in the same direction.",
+                    "In addition, jumps may be chained together. If the piece has another jump after \"landing\", it <em>must</em> also take this jump. This continues until the piece has no more jumps available to it. This is called a \"double jump\" when 2 pieces are captured, a \"tripple jump\" when 3 are captured, etc..",
+                    "If a player is able to make a jump with any of their peices, they <em>must</em> do so.",
+                    "It is not possible for a player to jump over one of their own pieces."
+                ]
+            },
+            {
+                "title": "Making a King",
+                "contents": [
+                    "A piece is made a \"King\" when it reaches the row farthest from its starting side (i.e. the bottom most row for black, the top most row for red). To denote this, a crown icon is placed over the piece once it becomes a king.",
+                    "Once a piece has been made a king, it is able to move in direction (but still only along the diagonals). This is applies to normal moves as well as jumps.",
+                    "When a piece is made a king its turn ends as soon as it reaches the final row. This means that, in the case where a player were to jump a piece in order to become a king, they cannot make any further jumps in that turn."
+                ]
+            },
+            {
+                "title": "Winning the Game",
+                "contents": [
+                    "The game is won by the player who first 1) captures the all of their opponents pieces or 2) prevents from being able to make any further moves."
+                ]
+            }
+        ]
+    },
+    {
+        "title": "Saving the Game",
+        "contents": [
+            "A game is saved to your borwser's local stroage every time a move is made or player's name is changed mid-game. This means that you can be in the middle of several games at the same time, as well as close the tab and come back later to the same place in the game (as long as you are still using the same browser).",
+            "It can be seen whether or not a game is saved by looking at the icon on the right-most side of the score bar, while inside of a game. If the floppy disk icon is green, the current state of the game has been saved and it is safe to exit the game. If the floppy disk icon is red, the game has not been saved and all porgress will be lost once the game has been exited."
+        ]
+    },
+    {
+        "title": "Creating a New Game",
+        "contents": [
+            "A new game can be created by clicking the \"New Game\" button, from the menu screen.",
+            "Here, you are able to set names for each player, as well as whether or not a player should be an \"AI Player\". When this option is checked, that player will be controlled by the computer.",
+            "Only a single player is able to be an \"AI Player\" in a game."
+        ]
+    },
+    {
+        "title": "Setting Player Names",
+        "contents": [
+            "Player names must be 1-20 characters long, and cannot include either the &lt; or &gt; characters.",
+            "A player's name can be set while a new game is being created or from inside of an active game.",
+            "To change/set a player's name, from inside of an active game, simply click on their name next to their score, near the top of the screen."
+        ]
+    },
+    {
+        "title": "About",
+        "contents": [
+            "This is an implementation of the classic game Checkers, also known as Draughts. If you want to find out more about the history of the game or other variations of it, you can do so <a href=\"https://en.wikipedia.org/wiki/Draughts\">here</a>.",
+            "If you would you would like to see how this page was built, you can find the source on <a href=\"https://github.com/nablsi14/react-checkers\">GitHub</a>."
+        ]
+    }
+]
