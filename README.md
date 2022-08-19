@@ -11,6 +11,7 @@ There are a number of branches. The purpose of these branches is to show how the
 * [`stargate`](https://github.com/cosmos/academy-checkers-ui/tree/stargate) [diff](https://github.com/cosmos/academy-checkers-ui/compare/generated...stargate)
 * [`signing-stargate`](https://github.com/cosmos/academy-checkers-ui/tree/signing-stargate) [diff](https://github.com/cosmos/academy-checkers-ui/compare/stargate...signing-stargate)
 * [`unwired-gui`](https://github.com/cosmos/academy-checkers-ui/tree/unwired-gui) [diff](https://github.com/cosmos/academy-checkers-ui/compare/signing-stargate...unwired-gui)
+* [`gui`](https://github.com/cosmos/academy-checkers-ui/tree/gui) [diff](https://github.com/cosmos/academy-checkers-ui/compare/unwired-gui...gui)
 
 ## V1 branches progression
 
