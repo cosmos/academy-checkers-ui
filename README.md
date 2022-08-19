@@ -17,6 +17,7 @@ The script `push-branches.sh` is used to extract these commits and force push th
 * [`stargate`](https://github.com/cosmos/academy-checkers-ui/tree/stargate) [diff](https://github.com/cosmos/academy-checkers-ui/compare/generated...stargate)
 * [`signing-stargate`](https://github.com/cosmos/academy-checkers-ui/tree/signing-stargate) [diff](https://github.com/cosmos/academy-checkers-ui/compare/stargate...signing-stargate)
 * [`unwired-gui`](https://github.com/cosmos/academy-checkers-ui/tree/unwired-gui) [diff](https://github.com/cosmos/academy-checkers-ui/compare/signing-stargate...unwired-gui)
+* [`gui`](https://github.com/cosmos/academy-checkers-ui/tree/gui) [diff](https://github.com/cosmos/academy-checkers-ui/compare/unwired-gui...gui)
 
 ## V1 branches progression
 
