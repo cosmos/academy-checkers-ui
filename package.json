@@ -5,9 +5,10 @@
     "main": "index.js",
     "scripts": {
         "test": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha --require ts-node/register 'test/**/*.ts'",
-        "start": "react-scripts start",
-        "build": "react-scripts build",
-        "test-react": "react-scripts test --env=jsdom",
+        "start": "react-app-rewired start",
+        "build": "react-app-rewired build",
+        "test-react": "react-app-rewired test --env=jsdom",
+        "eject": "react-scripts eject",
         "deploy": "ren .\\build\\index.html 200.html & surge .\\build"
     },
     "repository": {
@@ -35,6 +36,7 @@
         "reactstrap": "9.0.2"
     },
     "devDependencies": {
+        "@keplr-wallet/types": "0.11.51",
         "@types/chai": "4.3.3",
         "@types/dotenv": "8.2.0",
         "@types/lockr": "0.8.6",
@@ -51,6 +53,7 @@
         "chai": "4.3.6",
         "dotenv": "16.0.1",
         "mocha": "10.0.0",
+        "react-app-rewired": "2.2.1",
         "ts-node": "10.9.1",
         "typescript": "4.6.3"
     },
