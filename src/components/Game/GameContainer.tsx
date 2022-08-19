@@ -1,7 +1,12 @@
+import { OfflineSigner } from "@cosmjs/proto-signing"
+import { GasPrice } from "@cosmjs/stargate"
 import Lockr from "lockr"
-import QueryString from "query-string"
 import React, { Component } from "react"
+import { CheckersSigningStargateClient } from "src/checkers_signingstargateclient"
+import { CheckersStargateClient } from "src/checkers_stargateclient"
+import { checkersChainId, getCheckersChainInfo } from "src/types/checkers/chain"
 import { IGameInfo, IPlayerInfo, Position } from "../../sharedTypes"
+import {} from "../../types/checkers/extensions-gui"
 import MoveTree, { Player } from "../../util/MoveTree"
 import Board from "./Board/Board"
 import BoardMenu from "./BoardMenu/BoardMenu"
@@ -11,6 +16,12 @@ import GameOverModal from "./GameOverModal"
 interface IGameContainerProps {
     location: any
     index: string
+    rpcUrl: string
+}
+
+interface CreatorInfo {
+    creator: string
+    signingClient: CheckersSigningStargateClient
 }
 
 interface IGameContainerState {
@@ -25,6 +36,9 @@ interface IGameContainerState {
         [key: string]: boolean
     }
     [key: string]: any
+    client: CheckersStargateClient | undefined
+    creator: string
+    signingClient: CheckersSigningStargateClient | undefined
 }
 
 export default class GameContainer extends Component<IGameContainerProps, IGameContainerState> {
@@ -45,6 +59,9 @@ export default class GameContainer extends Component<IGameContainerProps, IGameC
             score: 0,
         },
         selected: {},
+        client: undefined,
+        creator: "",
+        signingClient: undefined,
     }
     constructor(props: IGameContainerProps) {
         super(props)
@@ -53,33 +70,25 @@ export default class GameContainer extends Component<IGameContainerProps, IGameC
         this.updateName = this.updateName.bind(this)
     }
 
-    public componentDidMount(): void {
+    public async componentDidMount(): Promise<void> {
         // Allow a player to make a move by double-clicking the screen.
         // This is mainly for touchscreen users.
         window.addEventListener("dblclick", this.makeMove)
-
-        const savedGames: IGameInfo[] = Lockr.get("saved_games") || []
-        const querys: any = QueryString.parse(this.props.location.search)
-
-        if (querys.newGame === "true") {
-            Lockr.set("saved_games", savedGames.slice(1))
-        }
-
-        let index: number = parseInt(this.props.index, 10)
-
-        if (isNaN(index) || index < 0 || index >= savedGames.length) {
-            index = 0
-        }
-
-        if (index === 0 && savedGames.length === 0) {
+        await this.loadGame()
+    }
+    public async loadGame(): Promise<void> {
+        const game: IGameInfo | undefined = await (
+            await this.getStargateClient()
+        ).getGuiGame(this.props.index)
+        if (!game) {
+            alert("Game does not exist")
             return
         }
-        const game: IGameInfo = savedGames[index]
 
         this.setState({
             board: new MoveTree(game.board, game.turn, 5),
             created: game.created,
-            isSaved: !querys.newGame,
+            isSaved: true,
             last: game.last,
             p1: {
                 is_ai: game.p1.is_ai,
@@ -103,6 +112,37 @@ export default class GameContainer extends Component<IGameContainerProps, IGameC
     }
     public componentWillUnmount() {
         window.removeEventListener("dblclick", this.makeMove)
+    }
+    protected async getStargateClient(): Promise<CheckersStargateClient> {
+        const client: CheckersStargateClient =
+            this.state.client ?? (await CheckersStargateClient.connect(this.props.rpcUrl))
+        if (!this.state.client) this.setState({ client: client })
+        return client
+    }
+    protected async getSigningStargateClient(): Promise<CreatorInfo> {
+        if (this.state.creator && this.state.signingClient)
+            return {
+                creator: this.state.creator,
+                signingClient: this.state.signingClient,
+            }
+        const { keplr } = window
+        if (!keplr) {
+            alert("You need to install Keplr")
+            throw new Error("You need to install Keplr")
+        }
+        await keplr.experimentalSuggestChain(getCheckersChainInfo())
+        await keplr.enable(checkersChainId)
+        const offlineSigner: OfflineSigner = keplr.getOfflineSigner!(checkersChainId)
+        const creator = (await offlineSigner.getAccounts())[0].address
+        const client: CheckersSigningStargateClient = await CheckersSigningStargateClient.connectWithSigner(
+            this.props.rpcUrl,
+            offlineSigner,
+            {
+                gasPrice: GasPrice.fromString("1stake"),
+            },
+        )
+        this.setState({ creator: creator, signingClient: client })
+        return { creator: creator, signingClient: client }
     }
     public currentPlayerIsAI(): boolean {
         const player: Player = this.state.board.current_player
@@ -160,7 +200,7 @@ export default class GameContainer extends Component<IGameContainerProps, IGameC
         selected[`${row},${col}`] = true
         this.setState({ selected })
     }
-    public makeMove(): void {
+    public async makeMove(): Promise<void> {
         if (this.state.locked && !this.currentPlayerIsAI()) {
             return
         }
@@ -169,43 +209,29 @@ export default class GameContainer extends Component<IGameContainerProps, IGameC
             return
         }
 
-        const move: Position[] = keys.map((k: string): Position => k.split(",").map(Number) as Position)
-        const board: MoveTree = this.state.board.getResultingTree(move) as MoveTree
-        const player: Player = this.state.board.current_player
-        const selected = Object.create(null)
+        const positions: Position[] = keys.map((k: string): Position => k.split(",").map(Number) as Position)
 
-        if (board !== null) {
-            this.setState({ board, locked: false }, () => {
-                // check for a change in a player's score
-                // and save the game
-                if (player === 1) {
-                    const p1: IPlayerInfo = this.state.p1 as IPlayerInfo
-                    p1.score = this.getScore(player)
-                    this.setState({ p1 }, this.saveGame)
-                } else if (player === 2) {
-                    const p2: IPlayerInfo = this.state.p2 as IPlayerInfo
-                    p2.score = this.getScore(player)
-                    this.setState({ p2 }, this.saveGame)
-                } else {
-                    this.saveGame()
-                }
-                if (board.game_over) {
-                    this.setState({ gameOver: true })
-                } else {
-                    // check if the AI needs to make a move
-                    if (this.currentPlayerIsAI()) {
-                        this.state.board
-                            .getBestMove()
-                            .forEach(([row, col]) => (selected[`${row},${col}`] = true))
-                        this.setState({ selected, locked: true }, () => {
-                            window.setTimeout(this.makeMove.bind(this), 750)
-                        })
-                    }
-                }
-            })
+        const client = await this.getStargateClient()
+        const canPlayOrNot = await client.canPlayGuiMove(
+            this.props.index,
+            this.state.board.current_player,
+            positions,
+        )
+        if (!canPlayOrNot.possible) {
+            const error = `Cannot make this move ${canPlayOrNot.reason}`
+            alert(error)
+            throw new Error(error)
         }
-        // console.log(JSON.stringify(selected));
+
+        const { creator, signingClient } = await this.getSigningStargateClient()
+        await signingClient.playGuiMoves(creator, this.props.index, positions).catch((e) => {
+            console.error(e)
+            alert("Failed to play: " + e)
+        })
+
+        const selected = Object.create(null)
         this.setState({ selected })
+        return this.loadGame()
     }
     public render() {
         let winner: string = ""
@@ -251,6 +277,7 @@ export default class GameContainer extends Component<IGameContainerProps, IGameC
                 p1: p1 as IPlayerInfo,
                 p2: p2 as IPlayerInfo,
                 turn: board.current_player,
+                index: -1,
             }
 
             const savedGames: IGameInfo[] = Lockr.get("saved_games") || []

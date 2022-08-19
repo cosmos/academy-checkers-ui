@@ -18,7 +18,13 @@ const titleStyles: CSSProperties = {
     textAlign: "center",
 }
 
-const GameContainerWrapper = () => <GameContainer index={useParams().index!} location={useLocation()} />
+interface GameContainerWrapperProps {
+    rpcUrl: string
+}
+
+const GameContainerWrapper = ({ rpcUrl }: GameContainerWrapperProps) => (
+    <GameContainer index={useParams().index!} location={useLocation()} rpcUrl={rpcUrl} />
+)
 
 const AsyncGameContainer = Loadable({
     loader: () => Promise.resolve(GameContainerWrapper),
@@ -29,7 +35,11 @@ const AsyncHowToPlay = Loadable({
     loading: Loading,
 })
 
-const App = () => {
+export interface AppProps {
+    rpcUrl: string
+}
+
+const App = ({ rpcUrl }: AppProps) => {
     const navigate = useNavigate()
     const goBack = () => navigate(-1)
     return (
@@ -37,8 +47,8 @@ const App = () => {
             <div className="well">
                 <div style={titleStyles}>Checkers</div>
                 <Routes>
-                    <Route path="menu" element={<MenuContainer location={""} />} />
-                    <Route path="play/:index" element={<AsyncGameContainer />} />
+                    <Route path="menu" element={<MenuContainer location={""} rpcUrl={rpcUrl} />} />
+                    <Route path="play/:index" element={<AsyncGameContainer rpcUrl={rpcUrl} />} />
                     <Route path="howtoplay" element={<AsyncHowToPlay goBack={goBack} />} />
                     <Route path="*" element={<Navigate to="/menu" replace={true} />} />
                 </Routes>

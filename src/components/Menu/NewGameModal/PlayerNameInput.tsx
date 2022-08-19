@@ -33,7 +33,7 @@ export default class PlayerNameInput extends Component<IPlayerNameInputProps, IP
                     type="text"
                     invalid={!this.state.isValid}
                     name={`p${playerNumber}Name`}
-                    maxLength={20}
+                    maxLength={45}
                     onChange={this.handleChange}
                     valid={this.state.isValid}
                     value={this.state.name}
