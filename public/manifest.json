@@ -1,0 +1,15 @@
+{
+  "short_name": "Checkers",
+  "name": "1 or 2 Player Checkers written in React.js",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "./index.html",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
+}
