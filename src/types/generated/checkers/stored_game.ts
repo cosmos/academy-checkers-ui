@@ -1,9 +1,7 @@
 /* eslint-disable */
-import Long from "long";
-import _m0 from "protobufjs/minimal";
-
+import { Long, isSet, DeepPartial, Exact } from "../helpers";
+import * as _m0 from "protobufjs/minimal";
 export const protobufPackage = "b9lab.checkers.checkers";
-
 export interface StoredGame {
   index: string;
   board: string;
@@ -18,7 +16,6 @@ export interface StoredGame {
   wager: Long;
   denom: string;
 }
-
 function createBaseStoredGame(): StoredGame {
   return {
     index: "",
@@ -32,15 +29,12 @@ function createBaseStoredGame(): StoredGame {
     beforeIndex: "",
     afterIndex: "",
     wager: Long.UZERO,
-    denom: "",
+    denom: ""
   };
 }
-
 export const StoredGame = {
-  encode(
-    message: StoredGame,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
+  typeUrl: "/b9lab.checkers.checkers.StoredGame",
+  encode(message: StoredGame, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.index !== "") {
       writer.uint32(10).string(message.index);
     }
@@ -79,7 +73,6 @@ export const StoredGame = {
     }
     return writer;
   },
-
   decode(input: _m0.Reader | Uint8Array, length?: number): StoredGame {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
@@ -109,7 +102,7 @@ export const StoredGame = {
           message.deadline = reader.string();
           break;
         case 8:
-          message.moveCount = reader.uint64() as Long;
+          message.moveCount = (reader.uint64() as Long);
           break;
         case 9:
           message.beforeIndex = reader.string();
@@ -118,7 +111,7 @@ export const StoredGame = {
           message.afterIndex = reader.string();
           break;
         case 11:
-          message.wager = reader.uint64() as Long;
+          message.wager = (reader.uint64() as Long);
           break;
         case 12:
           message.denom = reader.string();
@@ -130,26 +123,22 @@ export const StoredGame = {
     }
     return message;
   },
-
   fromJSON(object: any): StoredGame {
-    return {
-      index: isSet(object.index) ? String(object.index) : "",
-      board: isSet(object.board) ? String(object.board) : "",
-      turn: isSet(object.turn) ? String(object.turn) : "",
-      black: isSet(object.black) ? String(object.black) : "",
-      red: isSet(object.red) ? String(object.red) : "",
-      winner: isSet(object.winner) ? String(object.winner) : "",
-      deadline: isSet(object.deadline) ? String(object.deadline) : "",
-      moveCount: isSet(object.moveCount)
-        ? Long.fromValue(object.moveCount)
-        : Long.UZERO,
-      beforeIndex: isSet(object.beforeIndex) ? String(object.beforeIndex) : "",
-      afterIndex: isSet(object.afterIndex) ? String(object.afterIndex) : "",
-      wager: isSet(object.wager) ? Long.fromValue(object.wager) : Long.UZERO,
-      denom: isSet(object.denom) ? String(object.denom) : "",
-    };
+    const obj = createBaseStoredGame();
+    if (isSet(object.index)) obj.index = String(object.index);
+    if (isSet(object.board)) obj.board = String(object.board);
+    if (isSet(object.turn)) obj.turn = String(object.turn);
+    if (isSet(object.black)) obj.black = String(object.black);
+    if (isSet(object.red)) obj.red = String(object.red);
+    if (isSet(object.winner)) obj.winner = String(object.winner);
+    if (isSet(object.deadline)) obj.deadline = String(object.deadline);
+    if (isSet(object.moveCount)) obj.moveCount = Long.fromValue(object.moveCount);
+    if (isSet(object.beforeIndex)) obj.beforeIndex = String(object.beforeIndex);
+    if (isSet(object.afterIndex)) obj.afterIndex = String(object.afterIndex);
+    if (isSet(object.wager)) obj.wager = Long.fromValue(object.wager);
+    if (isSet(object.denom)) obj.denom = String(object.denom);
+    return obj;
   },
-
   toJSON(message: StoredGame): unknown {
     const obj: any = {};
     message.index !== undefined && (obj.index = message.index);
@@ -159,20 +148,14 @@ export const StoredGame = {
     message.red !== undefined && (obj.red = message.red);
     message.winner !== undefined && (obj.winner = message.winner);
     message.deadline !== undefined && (obj.deadline = message.deadline);
-    message.moveCount !== undefined &&
-      (obj.moveCount = (message.moveCount || Long.UZERO).toString());
-    message.beforeIndex !== undefined &&
-      (obj.beforeIndex = message.beforeIndex);
+    message.moveCount !== undefined && (obj.moveCount = (message.moveCount || Long.UZERO).toString());
+    message.beforeIndex !== undefined && (obj.beforeIndex = message.beforeIndex);
     message.afterIndex !== undefined && (obj.afterIndex = message.afterIndex);
-    message.wager !== undefined &&
-      (obj.wager = (message.wager || Long.UZERO).toString());
+    message.wager !== undefined && (obj.wager = (message.wager || Long.UZERO).toString());
     message.denom !== undefined && (obj.denom = message.denom);
     return obj;
   },
-
-  fromPartial<I extends Exact<DeepPartial<StoredGame>, I>>(
-    object: I
-  ): StoredGame {
+  fromPartial<I extends Exact<DeepPartial<StoredGame>, I>>(object: I): StoredGame {
     const message = createBaseStoredGame();
     message.index = object.index ?? "";
     message.board = object.board ?? "";
@@ -181,54 +164,15 @@ export const StoredGame = {
     message.red = object.red ?? "";
     message.winner = object.winner ?? "";
     message.deadline = object.deadline ?? "";
-    message.moveCount =
-      object.moveCount !== undefined && object.moveCount !== null
-        ? Long.fromValue(object.moveCount)
-        : Long.UZERO;
+    if (object.moveCount !== undefined && object.moveCount !== null) {
+      message.moveCount = Long.fromValue(object.moveCount);
+    }
     message.beforeIndex = object.beforeIndex ?? "";
     message.afterIndex = object.afterIndex ?? "";
-    message.wager =
-      object.wager !== undefined && object.wager !== null
-        ? Long.fromValue(object.wager)
-        : Long.UZERO;
+    if (object.wager !== undefined && object.wager !== null) {
+      message.wager = Long.fromValue(object.wager);
+    }
     message.denom = object.denom ?? "";
     return message;
-  },
+  }
 };
-
-type Builtin =
-  | Date
-  | Function
-  | Uint8Array
-  | string
-  | number
-  | boolean
-  | undefined;
-
-export type DeepPartial<T> = T extends Builtin
-  ? T
-  : T extends Long
-  ? string | number | Long
-  : T extends Array<infer U>
-  ? Array<DeepPartial<U>>
-  : T extends ReadonlyArray<infer U>
-  ? ReadonlyArray<DeepPartial<U>>
-  : T extends {}
-  ? { [K in keyof T]?: DeepPartial<T[K]> }
-  : Partial<T>;
-
-type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin
-  ? P
-  : P & { [K in keyof P]: Exact<P[K], I[K]> } & {
-      [K in Exclude<keyof I, KeysOfUnion<P>>]: never;
-    };
-
-if (_m0.util.Long !== Long) {
-  _m0.util.Long = Long as any;
-  _m0.configure();
-}
-
-function isSet(value: any): boolean {
-  return value !== null && value !== undefined;
-}
